@@ -1,0 +1,44 @@
+name: senior_project
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  smooth_page_indicator: ^1.1.0
+  shared_preferences: ^2.2.2
+  lottie: ^3.3.1
+  http: ^1.3.0
+  flutter_dotenv: ^5.1.0
+  image_picker: ^1.0.4
+  easy_localization: ^3.0.3
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  location: ^5.0.3
+  cupertino_icons: ^1.0.8
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.2
+  cloud_firestore: ^5.6.6
+
+  # ✅ New map dependencies (replacing Google Maps)
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - K.env
+    - lib/translations/en.json
+    - lib/translations/ar.json
