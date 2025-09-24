@@ -4,6 +4,8 @@ import 'package:senior_project/service_providers_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 // --------------------- SERVICES PAGE ---------------------
+const Color kPrimaryColor = Color(0xFF18AEAC);
+
 class ServicesPage extends StatelessWidget {
   const ServicesPage({super.key});
 
@@ -11,56 +13,59 @@ class ServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final _ = context.locale;
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text("home.available_services".tr()),
-        backgroundColor: const Color(0xFF007EA7),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: kPrimaryColor,
+        elevation: 0,
+        title: Text(
+          "home.available_services".tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold, color: kPrimaryColor),
+        ),
       ),
-      body: GridView.builder(
+      body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: localizedServiceList.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1,
-        ),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final service = localizedServiceList[index];
-          return InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ServiceProvidersPage(service: service),
-                ),
-              );
-            },
+          return Material(
+            color: Colors.white,
+            elevation: 2,
             borderRadius: BorderRadius.circular(12),
-            child: Ink(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  )
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(service.icon, size: 36, color: const Color(0xFF007EA7)),
-                  const SizedBox(height: 8),
-                  Text(
-                    service.nameKey.tr(),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14),
-                    textAlign: TextAlign.center,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ServiceProvidersPage(service: service),
                   ),
-                ],
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 42,
+                      width: 42,
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(service.icon, color: kPrimaryColor, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        service.nameKey.tr(),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: Colors.grey.shade500),
+                  ],
+                ),
               ),
             ),
           );

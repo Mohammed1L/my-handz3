@@ -26,25 +26,25 @@ class _LandingPageState extends State<LandingPage>
       titleKey: 'onboard.title1',
       subtitleKey: 'onboard.subtitle1',
       buttonTextKey: 'onboard.get_started',
-      icon: Icons.handshake,
+     imagePath:  'assets/images/slide2.png',
     ),
     LandingPageSlide(
       titleKey: 'onboard.title2',
       subtitleKey: 'onboard.subtitle2',
       buttonTextKey: 'onboard.next',
-      icon: Icons.design_services,
+      imagePath:  'assets/images/slide3.png',
     ),
     LandingPageSlide(
       titleKey: 'onboard.title3',
       subtitleKey: 'onboard.subtitle3',
       buttonTextKey: 'onboard.next',
-      icon: Icons.request_quote,
+        imagePath:  'assets/images/slide4.png'
     ),
     LandingPageSlide(
       titleKey: 'onboard.title4',
       subtitleKey: 'onboard.subtitle4',
       buttonTextKey: 'onboard.finish',
-      icon: Icons.verified,
+        imagePath:  'assets/images/slide5.png'
     ),
   ];
 
@@ -89,7 +89,7 @@ class _LandingPageState extends State<LandingPage>
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('seenLandingPage', true);
     Future.microtask(
-            () => Navigator.of(context).pushReplacementNamed('/phoneVerification'));
+            () => Navigator.of(context).pushReplacementNamed('/main'));
   }
 
   void _nextPage() {
@@ -147,7 +147,14 @@ class _LandingPageState extends State<LandingPage>
                       ],
                     ),
                     const SizedBox(height: 20),
-                    Icon(page.icon, size: 100, color: const Color(0xFF007EA7)),
+              SizedBox(
+              height: 300,
+              width: 300,
+              child: Image.asset(
+              page.imagePath,
+              fit: BoxFit.contain,
+              ),
+              ),
                     const SizedBox(height: 30),
                     FadeTransition(
                       opacity: _fadeAnimation,
@@ -159,7 +166,7 @@ class _LandingPageState extends State<LandingPage>
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF007EA7),
+                              color: Color(0xFF18AEAC),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -177,7 +184,7 @@ class _LandingPageState extends State<LandingPage>
                       controller: _pageController,
                       count: _pages.length,
                       effect: const ExpandingDotsEffect(
-                        activeDotColor: Color(0xFF007EA7),
+                        activeDotColor: Color(0xFF18AEAC),
                         dotHeight: 10,
                         dotWidth: 10,
                         spacing: 8,
@@ -197,7 +204,7 @@ class _LandingPageState extends State<LandingPage>
                       child: ElevatedButton(
                         onPressed: _nextPage,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF007EA7),
+                          backgroundColor: const Color(0xFF18AEAC),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -237,12 +244,12 @@ class LandingPageSlide {
   final String titleKey;
   final String subtitleKey;
   final String buttonTextKey;
-  final IconData icon;
+  final String imagePath; // <- path to the image asset
 
   LandingPageSlide({
     required this.titleKey,
     required this.subtitleKey,
     required this.buttonTextKey,
-    required this.icon,
+    required this.imagePath,
   });
 }

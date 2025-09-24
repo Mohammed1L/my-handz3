@@ -10,6 +10,7 @@ import '_Chatbot.dart';
 import '_BookingScreenState.dart'; // Updated BookingScreen
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'main_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/landing': (context) => const LandingPage(),
         '/phoneVerification': (context) => const PhoneVerificationPage(),
+        '/main': (context) => const MainPage(),
         '/chatbot': (context) => const ChatbotPage(),
         '/profile': (context) => const MyProfilePage(),
 

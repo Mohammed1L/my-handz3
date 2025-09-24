@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '_BookingScreenState.dart';
 
+const Color kPrimaryColor = Color(0xFF18AEAC);
+
 class ProviderServicesPage extends StatefulWidget {
   final String providerId;
   final String providerName;
@@ -85,93 +87,71 @@ class _ProviderServicesPageState extends State<ProviderServicesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: const Color(0xFFB2DFDB),
-        iconTheme: const IconThemeData(color: Color(0xFF007EA7)),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: kPrimaryColor,
         title: Text(
           widget.providerName,
           style: const TextStyle(
-            color: Color(0xFF007EA7),
+            color: kPrimaryColor,
             fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: kPrimaryColor))
           : services.isEmpty
           ? const Center(child: Text("No services available."))
-          : ListView.builder(
+          : ListView.separated(
         padding: const EdgeInsets.all(16),
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemCount: services.length,
         itemBuilder: (context, index) {
           final service = services[index];
           final inCart = isInCart(service);
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              elevation: 3,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          bottomLeft: Radius.circular(16),
-                        ),
-                        child: Container(
-                          height: 120,
-                          width: 120,
-                          color: const Color(0xFFB2DFDB),
-                          child: const Icon(Icons.miscellaneous_services,
-                              size: 50, color: Color(0xFF007EA7)),
-                        ),
+          return Material(
+            color: Colors.white,
+            elevation: 2,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                inCart ? removeFromCart(service) : addToCart(service);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 56,
+                      width: 56,
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: InkWell(
-                          onTap: () {
-                            inCart
-                                ? removeFromCart(service)
-                                : addToCart(service);
-                          },
-                          borderRadius: BorderRadius.circular(24),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: inCart
-                                  ? Colors.redAccent
-                                  : const Color(0xFF007EA7),
-                            ),
-                            child: Icon(
-                              inCart ? Icons.remove : Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
+                      child: const Icon(
+                        Icons.miscellaneous_services,
+                        color: kPrimaryColor,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             service['name'] ?? '',
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               Text(
@@ -179,16 +159,55 @@ class _ProviderServicesPageState extends State<ProviderServicesPage> {
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF007EA7),
+                                  color: kPrimaryColor,
                                 ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                height: 6,
+                                width: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade400,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Icon(Icons.schedule, size: 16, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Flexible timing',
+                                style: TextStyle(fontSize: 13, color: Colors.grey),
                               ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    InkWell(
+                      onTap: () {
+                        inCart ? removeFromCart(service) : addToCart(service);
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: inCart ? Colors.redAccent : kPrimaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(inCart ? Icons.remove : Icons.add, color: Colors.white, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              inCart ? 'Remove' : 'Add',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -197,12 +216,12 @@ class _ProviderServicesPageState extends State<ProviderServicesPage> {
       floatingActionButton: cart.isNotEmpty
           ? FloatingActionButton.extended(
         onPressed: goToBookingPage,
-        icon: const Icon(Icons.shopping_cart_checkout, color: Color(0xFF007EA7)),
+        icon: const Icon(Icons.shopping_cart_checkout, color: Colors.white),
         label: Text(
           "Book (${cart.length}) • ${cart.fold(0.0, (sum, item) => sum + (item['price'] ?? 0))} SAR",
-          style: const TextStyle(color: Color(0xFF007EA7)),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFFB2DFDB),
+        backgroundColor: kPrimaryColor,
       )
           : null,
     );

@@ -118,13 +118,23 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                 Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFFB2DFDB), Color(0xFF007EA7)],
+                      colors: [Color(0xFF18AEAC), Color(0xFF18AEAC)],
                     ),
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(24),
-                  child: const Icon(Icons.phone_android, size: 48, color: Colors.white),
+                  child: ClipRRect(
+
+                    child: Image.asset(
+                      'assets/images/smartphone.png',
+                      height: 100,
+                      width: 100,// replace with your image path
+
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 40),
                 Text(
                   "enter_name_phone".tr(),

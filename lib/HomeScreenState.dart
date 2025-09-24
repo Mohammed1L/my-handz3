@@ -6,7 +6,8 @@ import 'package:senior_project/service_providers_page.dart';
 import 'package:latlong2/latlong.dart';
 import '_Chatbot.dart';
 import 'LocationPickerScreen.dart';
-import 'ProviderAdminTestPage.dart';
+
+const Color kPrimaryColor = Color(0xFF18AEAC);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF007EA7),
+                    color: kPrimaryColor,
                   ),
                 ),
 
@@ -114,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on, color: Color(0xFF007EA7)),
+                      const Icon(Icons.location_on, color: kPrimaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -136,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen>
                 decoration: InputDecoration(
                   hintText: "home.search_hint".tr(),
                   hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF007EA7)),
+                  prefixIcon: const Icon(Icons.search, color: kPrimaryColor),
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding:
@@ -153,48 +154,22 @@ class _HomeScreenState extends State<HomeScreen>
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF007EA7),
+                  color: kPrimaryColor,
                 ),
               ),
               const SizedBox(height: 10),
 
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder: (_, __, ___) => const ProviderAdminTestPage(),
-                      transitionsBuilder: (_, animation, __, child) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                      transitionDuration: const Duration(milliseconds: 400),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  "Go to Admin Test Page",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-
-              const SizedBox(height: 10),
+              const SizedBox(height: 0),
               Expanded(
-                child: GridView.builder(
+                child: ListView.separated(
                   itemCount: serviceList.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1,
-                  ),
+                  padding: const EdgeInsets.only(bottom: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    return ServiceTile(service: serviceList[index]);
+                    return ServiceTile(
+                      service: serviceList[index],
+                      index: index,
+                    );
                   },
                 ),
               ),
@@ -203,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF007EA7),
+        backgroundColor: kPrimaryColor,
         onPressed: () {
           Navigator.of(context).push(
             PageRouteBuilder(
@@ -225,50 +200,87 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 // --------------------- SERVICE TILE ---------------------
-class ServiceTile extends StatelessWidget {
+class ServiceTile extends StatefulWidget {
   final Service service;
-  const ServiceTile({super.key, required this.service});
+  final int index;
+  const ServiceTile({super.key, required this.service, required this.index});
+
+  @override
+  State<ServiceTile> createState() => _ServiceTileState();
+}
+
+class _ServiceTileState extends State<ServiceTile> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Staggered reveal based on index; re-triggers when item is built on scroll
+    Future.delayed(Duration(milliseconds: 60 * (widget.index % 8)), () {
+      if (mounted) setState(() => _visible = true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 3,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.of(context).push(
-            PageRouteBuilder(
-              pageBuilder: (_, __, ___) =>
-                  ServiceProvidersPage(service: service),
-              transitionsBuilder: (_, animation, __, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 400),
-            ),
-          );
-        },
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 350),
+      opacity: _visible ? 1 : 0,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+        offset: _visible ? Offset.zero : const Offset(0, 0.08),
+        child: Material(
+          elevation: 2,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
             borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(service.icon, size: 36, color: const Color(0xFF007EA7)),
-              const SizedBox(height: 8),
-              Text(
-                service.nameKey.tr(),
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14),
-                textAlign: TextAlign.center,
+            onTap: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) =>
+                      ServiceProvidersPage(service: widget.service),
+                  transitionsBuilder: (_, animation, __, child) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  transitionDuration: const Duration(milliseconds: 400),
+                ),
+              );
+            },
+            child: Ink(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: kPrimaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(widget.service.icon, color: kPrimaryColor, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.service.nameKey.tr(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: Colors.grey.shade500),
+                ],
+              ),
+            ),
           ),
         ),
       ),

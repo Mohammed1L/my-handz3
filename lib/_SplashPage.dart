@@ -44,10 +44,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startApp() async {
-    setState(() {
-      _isStarting = true;
-    });
-
+    setState(() => _isStarting = true);
     await Future.delayed(const Duration(seconds: 2));
 
     final prefs = await SharedPreferences.getInstance();
@@ -55,67 +52,73 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (mounted) {
       Navigator.of(context).pushReplacementNamed(
-        seenLanding ? '/phoneVerification' : '/landing',
+        seenLanding ? '/main' : '/landing',
       );
     }
   }
 
   void _onLangSelected(String code) {
-    final locale = Locale(code);
-    context.setLocale(locale);
+    context.setLocale(Locale(code));
     setState(() => _selectedLangCode = code);
   }
 
   @override
   Widget build(BuildContext context) {
-    final _ = context.locale;
+    final _ = context.locale; // keep localization active
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F8FA),
+      // ---------- NEW WHITE BACKGROUND ----------
+      backgroundColor: Colors.white,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ---------- Logo ----------
+              // ---------- UPDATED LOGO ----------
               SizedBox(
-                height: 250,
-                width: 250,
+                height: 300,
+                width: 300,
                 child: Image.asset(
-                  'assets/images/Screenshot_2025-03-24_213038-removebg-preview.png',
+                  'assets/images/Screenshot_2025-03-24_213038-removebg-preview.png', // ← replace with your new image
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
               // ---------- Language Dropdown ----------
+              // ---------- Language Selection Buttons ----------
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFF007EA7), width: 1.5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedLangCode,
-                      hint: Text("change_language".tr()),
-                      isExpanded: true,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      onChanged: (value) => _onLangSelected(value!),
-                      items: _languages.map((lang) {
-                        return DropdownMenuItem<String>(
-                          value: lang['code'],
-                          child: Text(lang['label'], style: const TextStyle(fontSize: 16)),
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: _languages.map((lang) {
+                    final isSelected = _selectedLangCode == lang['code'];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: ElevatedButton(
+                        onPressed: () => _onLangSelected(lang['code']),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected ? const Color(0xFF18AEAC) : Colors.white,
+                          foregroundColor: isSelected ? Colors.white : Colors.black87,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.grey.shade400),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        child: Text(
+                          lang['label'],
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
 
-              const SizedBox(height: 30),
+
+              const SizedBox(height: 40),
 
               // ---------- Start Button ----------
               if (_selectedLangCode != null && !_isStarting)
@@ -124,13 +127,15 @@ class _SplashScreenState extends State<SplashScreen>
                   icon: const Icon(Icons.play_arrow),
                   label: Text("start_app".tr()),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007EA7),
+                    backgroundColor: const Color(0xFF18AEAC),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
 
@@ -141,12 +146,12 @@ class _SplashScreenState extends State<SplashScreen>
                   "please_wait".tr(),
                   style: const TextStyle(
                     fontSize: 18,
-                    color: Color(0xFF007EA7),
+                    color:  Color(0xFF18AEAC),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 16),
-                const CircularProgressIndicator(color: Color(0xFF007EA7)),
+                const CircularProgressIndicator(color: Colors.black87),
               ]
             ],
           ),
@@ -155,3 +160,4 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+
