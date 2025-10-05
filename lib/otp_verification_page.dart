@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'main_page.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:async';
 import 'dart:ui' as ui;
 
 class OTPVerificationPage extends StatefulWidget {
   final String phoneNumber;
   final String verificationId;
+  final int? forceResendToken;
 
   const OTPVerificationPage({
     super.key,
     required this.phoneNumber,
     required this.verificationId,
+    this.forceResendToken,
   });
 
   @override
@@ -22,12 +25,21 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _codeController = TextEditingController();
   String? _errorMessage;
+  bool _verifying = false;
   late AnimationController _controller;
   late Animation<double> _fadeIn;
+
+  // Resend cooldown
+  static const int _cooldownSec = 30;
+  Timer? _resendTimer;
+  int _secondsLeft = 0;
+  String _verificationId = '';
 
   @override
   void initState() {
     super.initState();
+    _verificationId = widget.verificationId;
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -40,42 +52,96 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
   void dispose() {
     _controller.dispose();
     _codeController.dispose();
+    _resendTimer?.cancel();
     super.dispose();
   }
 
-  void _verifyCode() async {
-    String smsCode = _codeController.text.trim();
-
-    if (smsCode.isEmpty || smsCode.length < 6) {
-      setState(() {
-        _errorMessage = "Enter a valid 6-digit code";
-      });
+  Future<void> _verifyCode() async {
+    final smsCode = _codeController.text.trim();
+    if (smsCode.length != 6) {
+      setState(() => _errorMessage = "invalid_otp".tr());
       return;
     }
 
+    setState(() {
+      _verifying = true;
+      _errorMessage = null;
+    });
+
     try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
+      final credential = PhoneAuthProvider.credential(
+        verificationId: _verificationId,
         smsCode: smsCode,
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
 
+      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => const MainPage(),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
           transitionDuration: const Duration(milliseconds: 500),
         ),
             (route) => false,
       );
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _verifying = false;
+        _errorMessage = e.code == 'invalid-verification-code'
+            ? "invalid_otp".tr()
+            : '${"verification_failed".tr()}: ${e.message ?? e.code}';
+      });
     } catch (e) {
       setState(() {
-        _errorMessage = "invalid_otp".tr();
+        _verifying = false;
+        _errorMessage = 'Error: ${e.toString()}';
       });
+    }
+  }
+
+  void _startCooldown() {
+    _resendTimer?.cancel();
+    setState(() => _secondsLeft = _cooldownSec);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      if (_secondsLeft <= 1) {
+        t.cancel();
+        setState(() => _secondsLeft = 0);
+      } else {
+        setState(() => _secondsLeft--);
+      }
+    });
+  }
+
+  Future<void> _resendCode() async {
+    if (_secondsLeft > 0) return;
+
+    final fullPhone = '+966${widget.phoneNumber}';
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: fullPhone,
+        timeout: const Duration(seconds: 60),
+        forceResendingToken: widget.forceResendToken,
+        verificationCompleted: (_) {},
+        verificationFailed: (e) {
+          setState(() {
+            _errorMessage = '${"verification_failed".tr()}: ${e.message ?? e.code}';
+          });
+        },
+        codeSent: (String newVerificationId, int? newToken) {
+          setState(() {
+            _verificationId = newVerificationId;
+            _errorMessage = null;
+          });
+          _startCooldown();
+        },
+        codeAutoRetrievalTimeout: (_) {},
+      );
+    } catch (e) {
+      setState(() => _errorMessage = 'Error: ${e.toString()}');
     }
   }
 
@@ -128,7 +194,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
                               textDirection: ui.TextDirection.ltr,
                               child: Text(
                                 '+966 ${widget.phoneNumber}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           ),
@@ -137,10 +206,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
                       textAlign: TextAlign.center,
                       textDirection: Directionality.of(context),
                     ),
-
-
                     const SizedBox(height: 40),
 
+                    // OTP field
                     TextField(
                       controller: _codeController,
                       textAlign: TextAlign.center,
@@ -149,23 +217,29 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
                       decoration: InputDecoration(
                         labelText: "otp_label".tr(),
                         labelStyle: const TextStyle(color: Colors.grey),
-                        floatingLabelStyle: const TextStyle(color: Color(0xFF007EA7)),
+                        floatingLabelStyle:
+                        const TextStyle(color: Color(0xFF007EA7)),
                         filled: true,
                         fillColor: Colors.grey[100],
                         counterText: "",
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF007EA7), width: 1.5),
+                          borderSide: const BorderSide(
+                              color: Color(0xFF007EA7), width: 1.5),
                         ),
                       ),
+                      onChanged: (_) {
+                        if (_errorMessage != null) {
+                          setState(() => _errorMessage = null);
+                        }
+                      },
                     ),
-
-
 
                     if (_errorMessage != null)
                       Padding(
@@ -175,33 +249,50 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
                           style: const TextStyle(color: Colors.red),
                         ),
                       ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
 
-                    ElevatedButton(
-                      onPressed: _verifyCode,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF007EA7),
-                        minimumSize: const Size.fromHeight(50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    // Verify
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _verifying ? null : _verifyCode,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF007EA7),
+                          minimumSize: const Size.fromHeight(50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        "verify".tr(),
-                        style: const TextStyle(color: Colors.white, fontSize: 18),
+                        child: _verifying
+                            ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                            : Text(
+                          "verify".tr(),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18),
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
+                    // Resend
                     TextButton(
-                      onPressed: () {
-                        // TODO: Add resend logic
-                      },
+                      onPressed: _secondsLeft > 0 ? null : _resendCode,
                       child: Text(
-                        "resend_code".tr(),
-                        style: const TextStyle(
-                          color: Color(0xFF007EA7),
+                        _secondsLeft > 0
+                            ? "${'resend_code_in'.tr()} $_secondsLeft s"
+                            : "resend_code".tr(),
+                        style: TextStyle(
+                          color: _secondsLeft > 0
+                              ? Colors.grey
+                              : const Color(0xFF007EA7),
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),

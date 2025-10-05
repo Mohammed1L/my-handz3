@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'otp_verification_page.dart';
+import 'main_page.dart';
 import 'dart:ui' as ui;
 
 class PhoneVerificationPage extends StatefulWidget {
@@ -16,13 +17,15 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+
   String? _errorMessage;
+  bool _sending = false;
+
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
-  bool _isRTL(Locale locale) {
-    return ['ar', 'fa', 'he', 'ur'].contains(locale.languageCode);
-  }
+  bool _isRTL(Locale locale) =>
+      ['ar', 'fa', 'he', 'ur'].contains(locale.languageCode);
 
   @override
   void initState() {
@@ -43,59 +46,98 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
     super.dispose();
   }
 
-  Future<void> _validateAndSendCode() async {
-    String name = _nameController.text.trim();
-    String phoneNumber = _phoneController.text.trim();
+  String? _validateInputs() {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    if (name.isEmpty) return "name_empty".tr();
+    if (phone.isEmpty) return "phone_empty".tr();
+    if (!phone.startsWith('5')) return "phone_start".tr();
+    if (phone.length != 9) return "phone_length".tr();
+    return null;
+  }
 
-    if (name.isEmpty || phoneNumber.isEmpty || phoneNumber.length != 9 || !phoneNumber.startsWith('5')) {
-      setState(() {
-        _errorMessage = name.isEmpty
-            ? "name_empty".tr()
-            : phoneNumber.isEmpty
-            ? "phone_empty".tr()
-            : !phoneNumber.startsWith('5')
-            ? "phone_start".tr()
-            : "phone_length".tr();
-      });
+  Future<void> _sendCode() async {
+    final error = _validateInputs();
+    if (error != null) {
+      setState(() => _errorMessage = error);
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userName', name);
+    await prefs.setString('userName', _nameController.text.trim());
 
-    String fullPhoneNumber = '+966$phoneNumber';
+    final fullPhone = '+966${_phoneController.text.trim()}';
+
+    setState(() {
+      _sending = true;
+      _errorMessage = null;
+    });
 
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: fullPhoneNumber,
+        phoneNumber: fullPhone,
+        timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await FirebaseAuth.instance.signInWithCredential(credential);
+          try {
+            await FirebaseAuth.instance.signInWithCredential(credential);
+            if (!mounted) return;
+            Navigator.pushAndRemoveUntil(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const MainPage(),
+                transitionsBuilder: (_, anim, __, child) =>
+                    FadeTransition(opacity: anim, child: child),
+                transitionDuration: const Duration(milliseconds: 400),
+              ),
+                  (route) => false,
+            );
+          } catch (_) {
+            // If silent sign-in fails, user will still see the OTP screen after codeSent.
+          }
         },
         verificationFailed: (FirebaseAuthException e) {
+          String msg;
+          switch (e.code) {
+            case 'invalid-phone-number':
+              msg = "invalid_phone".tr();
+              break;
+            case 'too-many-requests':
+              msg = "too_many_requests".tr();
+              break;
+            case 'network-request-failed':
+              msg = "network_error".tr();
+              break;
+            default:
+              msg = '${"verification_failed".tr()}: ${e.message ?? e.code}';
+          }
           setState(() {
-            _errorMessage = 'Verification failed: ${e.message}';
+            _sending = false;
+            _errorMessage = msg;
           });
         },
         codeSent: (String verificationId, int? resendToken) {
+          setState(() => _sending = false);
           Navigator.push(
             context,
             PageRouteBuilder(
               pageBuilder: (_, __, ___) => OTPVerificationPage(
-                phoneNumber: phoneNumber,
+                phoneNumber: _phoneController.text.trim(),
                 verificationId: verificationId,
+                forceResendToken: resendToken,
               ),
-              transitionsBuilder: (_, animation, __, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder: (_, anim, __, child) =>
+                  FadeTransition(opacity: anim, child: child),
               transitionDuration: const Duration(milliseconds: 500),
             ),
           );
         },
-        codeAutoRetrievalTimeout: (String verificationId) {},
+        codeAutoRetrievalTimeout: (_) {
+        },
       );
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error sending code: ${e.toString()}';
+        _sending = false;
+        _errorMessage = 'Error: ${e.toString()}';
       });
     }
   }
@@ -123,18 +165,13 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(24),
-                  child: ClipRRect(
-
-                    child: Image.asset(
-                      'assets/images/smartphone.png',
-                      height: 100,
-                      width: 100,// replace with your image path
-
-                      fit: BoxFit.cover,
-                    ),
+                  child: Image.asset(
+                    'assets/images/smartphone.png',
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
                   ),
                 ),
-
                 const SizedBox(height: 40),
                 Text(
                   "enter_name_phone".tr(),
@@ -147,14 +184,15 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                 ),
                 const SizedBox(height: 30),
 
-                // ---------------- Name Field ----------------
+                // Name
                 TextField(
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                     labelText: "name".tr(),
                     labelStyle: const TextStyle(color: Colors.grey),
-                    floatingLabelStyle: const TextStyle(color: Color(0xFF007EA7)),
+                    floatingLabelStyle:
+                    const TextStyle(color: Color(0xFF007EA7)),
                     filled: true,
                     fillColor: Colors.grey[100],
                     border: OutlineInputBorder(
@@ -163,52 +201,54 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF007EA7), width: 1.5),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF007EA7), width: 1.5),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // ---------------- Phone Field ----------------
+                // Phone (LTR digits in both locales)
                 Directionality(
-                  textDirection: isRTL ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+                  textDirection:
+                  isRTL ? ui.TextDirection.rtl : ui.TextDirection.ltr,
                   child: TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 9,
-                  textDirection: ui.TextDirection.ltr,
-                  decoration: InputDecoration(
-                    labelText: "phone_number".tr(),
-                    labelStyle: const TextStyle(color: Colors.grey),
-                    floatingLabelStyle: const TextStyle(color: Color(0xFF007EA7)),
-                    prefixText: context.locale.languageCode == 'en' ? '+966 ' : null,
-                    suffixText: context.locale.languageCode == 'ar' ? ' 966+' : null,
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    counterText: "",
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                    controller: _phoneController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 9,
+                    textDirection: ui.TextDirection.ltr,
+                    decoration: InputDecoration(
+                      labelText: "phone_number".tr(),
+                      labelStyle: const TextStyle(color: Colors.grey),
+                      floatingLabelStyle:
+                      const TextStyle(color: Color(0xFF007EA7)),
+                      prefixText:
+                      context.locale.languageCode == 'en' ? '+966 ' : null,
+                      suffixText:
+                      context.locale.languageCode == 'ar' ? ' 966+' : null,
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      counterText: "",
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF007EA7), width: 1.5),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF007EA7), width: 1.5),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      if (value.isNotEmpty && (!value.startsWith('5') || value.length > 9)) {
-                        _errorMessage = !value.startsWith('5')
-                            ? "phone_start".tr()
-                            : "phone_length".tr();
-                      } else {
-                        _errorMessage = null;
+                    onChanged: (_) {
+                      if (_errorMessage != null) {
+                        setState(() => _errorMessage = null);
                       }
-                    });
-                  },
-                ),
+                    },
+                  ),
                 ),
 
                 if (_errorMessage != null)
@@ -220,21 +260,33 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                     ),
                   ),
 
-                const SizedBox(height: 40),
-
-                ElevatedButton(
-                  onPressed: _validateAndSendCode,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    minimumSize: const Size.fromHeight(50),
-                    backgroundColor: const Color(0xFF007EA7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 30),
+                SizedBox(
+                  height: 50,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _sending ? null : _sendCode,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: const Color(0xFF007EA7),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    "send_code".tr(),
-                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                    child: _sending
+                        ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                        : Text(
+                      "send_code".tr(),
+                      style: const TextStyle(
+                          fontSize: 18, color: Colors.white),
+                    ),
                   ),
                 ),
               ],
