@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:senior_project/services/firebase_Services.dart';
 import 'LocationPickerScreen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'services/stripe_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> services;
@@ -103,6 +106,42 @@ class _BookingScreenState extends State<BookingScreen>
     }
 
     try {
+      // 1) Attempt PaymentSheet via backend (if configured)
+      final stripe = StripeService();
+      final amountMinor = (widget.totalCost * 100).round();
+      final description = 'Booking with ${widget.providerName}: '
+          '${widget.services.map((e) => e['name']).join(', ')}';
+
+      bool paid = false;
+      try {
+        paid = await stripe.payWithPaymentSheet(
+          amountMinor: amountMinor,
+          currency: dotenv.env['STRIPE_CURRENCY'] ?? 'sar',
+          description: description,
+        );
+      } catch (e) {
+        // If backend-based PaymentSheet fails, try Payment Link fallback
+        paid = false;
+      }
+
+      if (!paid) {
+        final paymentLink = dotenv.env['STRIPE_PAYMENT_LINK_URL'];
+        if (paymentLink != null && paymentLink.isNotEmpty) {
+          final uri = Uri.parse(paymentLink);
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+          // Inform the user to complete payment and then return
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Complete payment in the opened page, then return to the app.'),
+            ),
+          );
+          return; // Do not confirm booking until we can verify payment
+        } else {
+          throw Exception('Payment is not configured. Please contact support.');
+        }
+      }
+
+      // 2) Only after successful payment, create booking
       await firebaseService.createBookingRequest(
         service: widget.services.map((e) => e['name']).join(', '),
         date: date,
@@ -113,7 +152,7 @@ class _BookingScreenState extends State<BookingScreen>
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainPage(), // make sure HomeScreen is imported
+            pageBuilder: (_, __, ___) => const MainPage(),
             transitionsBuilder: (_, animation, __, child) {
               return FadeTransition(opacity: animation, child: child);
             },

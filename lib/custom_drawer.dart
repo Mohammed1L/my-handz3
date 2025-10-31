@@ -214,7 +214,14 @@ class _CustomDrawerState extends State<CustomDrawer>
                   context, Icons.engineering, "become_worker".tr()),
               const SizedBox(height: 8),
               _buildDrawerItem(
-                  context, Icons.apartment, "register_company".tr()),
+                context,
+                Icons.apartment,
+                "register_company".tr(),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).pushNamed('/companyRegister');
+                },
+              ),
               const SizedBox(height: 8),
               const Divider(thickness: 1, indent: 16, endIndent: 16),
               const SizedBox(height: 8),
