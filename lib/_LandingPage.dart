@@ -252,6 +252,28 @@ class _LandingPageState extends State<LandingPage>
                             ),
 
                             const SizedBox(height: 16),
+
+                            // Secondary action: Register as Company
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed('/companyRegister');
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFF18AEAC)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.apartment, color: Color(0xFF18AEAC)),
+                                label: const Text(
+                                  'Register as Company',
+                                  style: TextStyle(color: Color(0xFF18AEAC)),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       );
