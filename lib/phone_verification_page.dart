@@ -6,6 +6,18 @@ import 'otp_verification_page.dart';
 import 'main_page.dart';
 import 'dart:ui' as ui;
 
+/// Normalize Saudi numbers to E.164: +9665XXXXXXXX
+String toE164KSA(String raw) {
+  final digits = raw.replaceAll(RegExp(r'\D'), ''); // keep numbers only
+  if (digits.isEmpty) return '+966';
+  if (digits.startsWith('966')) return '+$digits';
+  if (digits.startsWith('0')) return '+966${digits.substring(1)}';
+  if (digits.startsWith('5')) return '+966$digits';
+  // Fallback: assume already E.164 if user typed +...
+  if (raw.trim().startsWith('+')) return raw.trim();
+  return '+966$digits';
+}
+
 class PhoneVerificationPage extends StatefulWidget {
   const PhoneVerificationPage({super.key});
 
@@ -48,11 +60,15 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
 
   String? _validateInputs() {
     final name = _nameController.text.trim();
-    final phone = _phoneController.text.trim();
+    final phone = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     if (name.isEmpty) return "name_empty".tr();
     if (phone.isEmpty) return "phone_empty".tr();
-    if (!phone.startsWith('5')) return "phone_start".tr();
-    if (phone.length != 9) return "phone_length".tr();
+    if (!phone.startsWith('5') && !phone.startsWith('05') && !phone.startsWith('9665')) {
+      return "phone_start".tr(); // expects a local 5XXXXXXXX or 05XXXXXXXX
+    }
+    // Accept 9 local digits (5XXXXXXXX) or 10 with leading 0 (05XXXXXXXX)
+    final local = phone.startsWith('0') ? phone.substring(1) : phone;
+    if (local.length != 9) return "phone_length".tr();
     return null;
   }
 
@@ -66,7 +82,7 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', _nameController.text.trim());
 
-    final fullPhone = '+966${_phoneController.text.trim()}';
+    final fullPhone = toE164KSA(_phoneController.text);
 
     setState(() {
       _sending = true;
@@ -91,8 +107,8 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
               ),
                   (route) => false,
             );
-          } catch (_) {
-            // If silent sign-in fails, user will still see the OTP screen after codeSent.
+          } catch (e) {
+            // If silent sign-in fails, user still proceeds to OTP screen via codeSent.
           }
         },
         verificationFailed: (FirebaseAuthException e) {
@@ -106,6 +122,9 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
               break;
             case 'network-request-failed':
               msg = "network_error".tr();
+              break;
+            case 'quota-exceeded':
+              msg = "verification_failed".tr() + " (quota-exceeded)";
               break;
             default:
               msg = '${"verification_failed".tr()}: ${e.message ?? e.code}';
@@ -131,13 +150,12 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
             ),
           );
         },
-        codeAutoRetrievalTimeout: (_) {
-        },
+        codeAutoRetrievalTimeout: (_) {},
       );
     } catch (e) {
       setState(() {
         _sending = false;
-        _errorMessage = 'Error: ${e.toString()}';
+        _errorMessage = 'Error: $e';
       });
     }
   }
@@ -201,11 +219,11 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF007EA7), width: 1.5),
+                      borderSide:
+                      const BorderSide(color: Color(0xFF007EA7), width: 1.5),
                     ),
-                    contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -217,7 +235,7 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                   child: TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.number,
-                    maxLength: 9,
+                    maxLength: 9, // local KSA 5XXXXXXXX (9 digits)
                     textDirection: ui.TextDirection.ltr,
                     decoration: InputDecoration(
                       labelText: "phone_number".tr(),
@@ -239,8 +257,8 @@ class _PhoneVerificationPageState extends State<PhoneVerificationPage>
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                            color: Color(0xFF007EA7), width: 1.5),
+                        borderSide:
+                        const BorderSide(color: Color(0xFF007EA7), width: 1.5),
                       ),
                     ),
                     onChanged: (_) {

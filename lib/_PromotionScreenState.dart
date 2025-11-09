@@ -35,81 +35,109 @@ class _PromotionScreenState extends State<PromotionScreen>
   @override
   Widget build(BuildContext context) {
     final _ = context.locale;
+    final bottomSafe = MediaQuery.of(context).viewPadding.bottom;
+
     return FadeTransition(
       opacity: _fadeIn,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "promotions".tr(),
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: Color(0xFF007EA7)),
-            ),
-            const SizedBox(height: 40),
-            Expanded(
-              child: Center(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(20, 24, 20, bottomSafe + 20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight - (bottomSafe + 20)),
+              child: IntrinsicHeight(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeOutBack,
-                      builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Container(
-                            height: 160,
-                            width: 160,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFB2DFDB),
-                            ),
-                            child: const Icon(
-                              Icons.card_giftcard,
-                              size: 80,
-                              color: Color(0xFF007EA7),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 24),
                     Text(
-                      "no_promotions".tr(),
-                      style:
-                          const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Color(0xFF007EA7)),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "no_promotions_sub".tr(),
+                      "promotions".tr(),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: widget.onBackToServices,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF007EA7),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF007EA7),
                       ),
-                      icon: const Icon(Icons.storefront, color: Colors.white),
-                      label: Text(
-                        "check_services".tr(),
-                        style: const TextStyle(color: Colors.white),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // The main empty state content
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutBack,
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: Container(
+                                    height: 160,
+                                    width: 160,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFFB2DFDB),
+                                    ),
+                                    child: const Icon(
+                                      Icons.card_giftcard,
+                                      size: 80,
+                                      color: Color(0xFF007EA7),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              "no_promotions".tr(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF007EA7),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                "no_promotions_sub".tr(),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: widget.onBackToServices,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF007EA7),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                ),
+                                icon: const Icon(Icons.storefront, color: Colors.white),
+                                label: Text(
+                                  "check_services".tr(),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
