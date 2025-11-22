@@ -11,12 +11,18 @@ import '_BookingScreenState.dart'; // Updated BookingScreen
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'main_page.dart';
+import 'CompanyRegisterPage.dart';
+import 'CompanyDashboardPage.dart';
+import 'services/stripe_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {}
   await EasyLocalization.ensureInitialized();
-  await dotenv.load(fileName: "K.env");
+  try { await dotenv.load(fileName: "K.env"); } catch (_) {}
+  try { await StripeService.init(); } catch (_) {}
   final prefs = await SharedPreferences.getInstance();
   final hasSeenLanding = prefs.getBool('seenLandingPage') ?? false;
 
@@ -42,13 +48,16 @@ class MyApp extends StatelessWidget {
       locale: context.locale,
       supportedLocales: context.supportedLocales,
       localizationsDelegates: context.localizationDelegates,
-      home: const SplashScreen(),
+      // If Splash causes issues, show landing directly to avoid blank screen on web
+      home: const LandingPage(),
       routes: {
         '/landing': (context) => const LandingPage(),
         '/phoneVerification': (context) => const PhoneVerificationPage(),
         '/main': (context) => const MainPage(),
         '/chatbot': (context) => const ChatbotPage(),
         '/profile': (context) => const MyProfilePage(),
+        '/companyRegister': (context) => const CompanyRegisterPage(),
+        '/companyDashboard': (context) => const CompanyDashboardPage(),
 
         // 🛠️ Updated Booking Route with new BookingScreen params
         '/booking': (context) {

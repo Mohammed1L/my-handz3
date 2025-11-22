@@ -166,7 +166,6 @@ class _LandingPageState extends State<LandingPage>
                   ),
                 ),
 
-                // PageView area (expanded to available height)
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
@@ -189,7 +188,6 @@ class _LandingPageState extends State<LandingPage>
                           children: [
                             const SizedBox(height: 6),
 
-                            // IMAGE (same position & size for all slides)
                             SizedBox(
                               height: imageBoxHeight,
                               width: double.infinity,
@@ -204,7 +202,6 @@ class _LandingPageState extends State<LandingPage>
 
                             const SizedBox(height: 22),
 
-                            //TEXTS (animated fade in)
                             FadeTransition(
                               opacity: _fadeAnimation,
                               child: Column(
@@ -233,7 +230,6 @@ class _LandingPageState extends State<LandingPage>
 
                             const Spacer(),
 
-                            //CTA BUTTON
                             SizedBox(
                               width: double.infinity,
                               height: 50,
@@ -256,6 +252,28 @@ class _LandingPageState extends State<LandingPage>
                             ),
 
                             const SizedBox(height: 16),
+
+                            // Secondary action: Register as Company
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed('/companyRegister');
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFF18AEAC)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.apartment, color: Color(0xFF18AEAC)),
+                                label: const Text(
+                                  'Register as Company',
+                                  style: TextStyle(color: Color(0xFF18AEAC)),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -263,7 +281,6 @@ class _LandingPageState extends State<LandingPage>
                   ),
                 ),
 
-                //INDICATOR
                 Padding(
                   padding: const EdgeInsets.only(bottom: 18, top: 4),
                   child: SmoothPageIndicator(

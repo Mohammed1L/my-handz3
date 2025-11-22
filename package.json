@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.0",
+    "typescript": "^5.6.3",
+    "ts-node": "^10.9.2"
+  },
+  "scripts": {
+    "test:rules": "ts-node firestore.rules.spec.ts"
+  }
+}
+
+

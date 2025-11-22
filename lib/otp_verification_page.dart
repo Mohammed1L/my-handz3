@@ -5,6 +5,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 
+/// Normalize Saudi numbers to E.164: +9665XXXXXXXX
+String toE164KSA(String raw) {
+  final digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return '+966';
+  if (digits.startsWith('966')) return '+$digits';
+  if (digits.startsWith('0')) return '+966${digits.substring(1)}';
+  if (digits.startsWith('5')) return '+966$digits';
+  if (raw.trim().startsWith('+')) return raw.trim();
+  return '+966$digits';
+}
+
 class OTPVerificationPage extends StatefulWidget {
   final String phoneNumber;
   final String verificationId;
@@ -33,12 +44,15 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
   static const int _cooldownSec = 30;
   Timer? _resendTimer;
   int _secondsLeft = 0;
+
   String _verificationId = '';
+  int? _forceResendToken; // <-- keep latest token
 
   @override
   void initState() {
     super.initState();
     _verificationId = widget.verificationId;
+    _forceResendToken = widget.forceResendToken;
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -97,7 +111,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
     } catch (e) {
       setState(() {
         _verifying = false;
-        _errorMessage = 'Error: ${e.toString()}';
+        _errorMessage = 'Error: $e';
       });
     }
   }
@@ -119,21 +133,23 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
   Future<void> _resendCode() async {
     if (_secondsLeft > 0) return;
 
-    final fullPhone = '+966${widget.phoneNumber}';
+    final fullPhone = toE164KSA(widget.phoneNumber);
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: fullPhone,
         timeout: const Duration(seconds: 60),
-        forceResendingToken: widget.forceResendToken,
+        forceResendingToken: _forceResendToken, // <-- use latest
         verificationCompleted: (_) {},
         verificationFailed: (e) {
           setState(() {
-            _errorMessage = '${"verification_failed".tr()}: ${e.message ?? e.code}';
+            _errorMessage =
+            '${"verification_failed".tr()}: ${e.message ?? e.code}';
           });
         },
         codeSent: (String newVerificationId, int? newToken) {
           setState(() {
             _verificationId = newVerificationId;
+            _forceResendToken = newToken; // <-- update token
             _errorMessage = null;
           });
           _startCooldown();
@@ -141,7 +157,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
         codeAutoRetrievalTimeout: (_) {},
       );
     } catch (e) {
-      setState(() => _errorMessage = 'Error: ${e.toString()}');
+      setState(() => _errorMessage = 'Error: $e');
     }
   }
 
@@ -172,7 +188,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
                         shape: BoxShape.circle,
                       ),
                       padding: const EdgeInsets.all(24),
-                      child: const Icon(Icons.chat, size: 48, color: Colors.white),
+                      child:
+                      const Icon(Icons.chat, size: 48, color: Colors.white),
                     ),
                     const SizedBox(height: 30),
                     Text(
@@ -193,7 +210,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage>
                             child: Directionality(
                               textDirection: ui.TextDirection.ltr,
                               child: Text(
-                                '+966 ${widget.phoneNumber}',
+                                toE164KSA(widget.phoneNumber),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
