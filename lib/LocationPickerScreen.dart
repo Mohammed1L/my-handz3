@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:location/location.dart';
 
 class LocationPickerScreen extends StatefulWidget {
@@ -11,8 +11,8 @@ class LocationPickerScreen extends StatefulWidget {
 }
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
-  LatLng _selectedLocation = LatLng(24.7136, 46.6753); // Default: Riyadh
-  final MapController _mapController = MapController();
+  LatLng _selectedLocation = const LatLng(24.7136, 46.6753); // Default: Riyadh
+  GoogleMapController? _mapController;
   LocationData? _currentLocation;
   final Location _locationService = Location();
   double _zoom = 13.0;
@@ -34,22 +34,22 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         _currentLocation = location;
         _selectedLocation = LatLng(location.latitude!, location.longitude!);
       });
-
-      _mapController.move(
-        _selectedLocation,
-        _zoom,
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: _selectedLocation, zoom: _zoom),
+        ),
       );
     }
   }
 
-  void _onMapTap(TapPosition tapPosition, LatLng latlng) {
+  void _onMapTap(LatLng latlng) {
     setState(() {
       _selectedLocation = latlng;
     });
   }
 
   void _confirmLocation() {
-    Navigator.pop(context, _selectedLocation);
+    Navigator.pop(context, ll.LatLng(_selectedLocation.latitude, _selectedLocation.longitude));
   }
 
   void _recenterToUser() {
@@ -61,18 +61,22 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       setState(() {
         _selectedLocation = latlng;
       });
-      _mapController.move(latlng, _zoom);
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: latlng, zoom: _zoom),
+        ),
+      );
     }
   }
 
   void _zoomIn() {
     setState(() => _zoom += 1);
-    _mapController.move(_mapController.center, _zoom);
+    _mapController?.animateCamera(CameraUpdate.zoomTo(_zoom));
   }
 
   void _zoomOut() {
     setState(() => _zoom -= 1);
-    _mapController.move(_mapController.center, _zoom);
+    _mapController?.animateCamera(CameraUpdate.zoomTo(_zoom));
   }
 
   @override
@@ -88,52 +92,25 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              center: _selectedLocation,
-              zoom: _zoom,
-              onTap: _onMapTap,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: ['a', 'b', 'c'],
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    width: 50,
-                    height: 50,
-                    point: _selectedLocation,
-                    rotate: true,
-                    child: const Icon(
-                      Icons.location_pin,
-                      size: 40,
-                      color: Colors.red,
-                    ),
-                  ),
-                ],
+          GoogleMap(
+            initialCameraPosition: CameraPosition(target: _selectedLocation, zoom: _zoom),
+            onMapCreated: (c) => _mapController = c,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            onTap: _onMapTap,
+            markers: {
+              Marker(
+                markerId: const MarkerId('selected'),
+                position: _selectedLocation,
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
               ),
               if (_currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      width: 40,
-                      height: 40,
-                      point: LatLng(
-                        _currentLocation!.latitude!,
-                        _currentLocation!.longitude!,
-                      ),
-                      child: const Icon(
-                        Icons.my_location,
-                        size: 30,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ],
+                Marker(
+                  markerId: const MarkerId('me'),
+                  position: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
                 ),
-            ],
+            },
           ),
 
           Positioned(
