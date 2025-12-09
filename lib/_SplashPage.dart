@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // -------- Moving Gradient Background --------
+          //Moving Gradient Background
           AnimatedBuilder(
             animation: _controller,
             builder: (_, __) {
@@ -93,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen>
             },
           ),
 
-          // -------- Floating Blobs --------
+          //Floating Blobs
           ...List.generate(6, (i) {
             final random = Random(i);
             final size = 120.0 + random.nextInt(80);
@@ -123,7 +123,7 @@ class _SplashScreenState extends State<SplashScreen>
             );
           }),
 
-          // -------- Main Content --------
+          //Main Content
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

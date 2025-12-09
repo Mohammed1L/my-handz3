@@ -5,8 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:senior_project/service_model.dart';
 import 'package:senior_project/service_providers_page.dart';
 import 'package:latlong2/latlong.dart';
+import 'ProviderServicesPage.dart';
 import '_Chatbot.dart';
 import 'LocationPickerScreen.dart';
+import 'package:senior_project/widgets/provider_search_widget.dart';
 
 const Color kPrimaryColor = Color(0xFF18AEAC);
 
@@ -24,8 +26,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   LatLng? _selectedLocation;
   String _locationText = "Select your location";
-
-  final FocusNode _searchFocus = FocusNode();
 
   @override
   void initState() {
@@ -48,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _controller.dispose();
-    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -60,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ---------- Animated Background ----------
+          //Animated Background
           const _DiagonalGradientBackdrop(),
           AnimatedBuilder(
             animation: _controller,
@@ -94,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen>
             },
           ),
 
-          // ---------- Content ----------
+          //Content
           SafeArea(
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
@@ -156,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ],
                     ),
 
-                    // ---------- Location Chip ----------
+                    //Location Chip
                     const SizedBox(height: 16),
                     _FrostedCard(
                       onTap: () async {
@@ -204,50 +203,36 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
 
-                    // ---------- Search ----------
                     const SizedBox(height: 14),
-                    AnimatedScale(
-                      scale: _searchFocus.hasFocus ? 1.01 : 1.0,
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      child: _FrostedCard(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.search, color: kPrimaryColor),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                focusNode: _searchFocus,
-                                decoration: InputDecoration(
-                                  hintText: "home.search_hint".tr(),
-                                  hintStyle:
-                                  const TextStyle(color: Colors.grey),
-                                  border: InputBorder.none,
-                                ),
+                    _FrostedCard(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      child: ProviderSearchWidget(
+                        onTap: (doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final providerName =
+                              data['name']?.toString() ?? 'Provider';
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              pageBuilder: (_, __, ___) => ProviderServicesPage(
+                                providerId: doc.id,
+                                providerName: providerName,
                               ),
+                              transitionsBuilder: (_, animation, __, child) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                );
+                              },
+                              transitionDuration:
+                              const Duration(milliseconds: 360),
                             ),
-                            InkWell(
-                              borderRadius: BorderRadius.circular(28),
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: kPrimaryColor.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(Icons.tune_rounded,
-                                    size: 18, color: kPrimaryColor),
-                              ),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ),
 
-                    // ---------- Section Header ----------
+                    //Section Header
                     const SizedBox(height: 14),
                     Row(
                       children: [
@@ -297,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(height: 8),
 
-                    // ---------- Services List ----------
+                    //Services List
                     Expanded(
                       child: ListView.separated(
                         padding: const EdgeInsets.only(
@@ -342,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// --------------------- Animated Background Helpers ---------------------
+//Animated Background Helpers
 
 double _lerp(double a, double b, double t) => a + (b - a) * t;
 
@@ -434,7 +419,7 @@ class _BlurredBlob extends StatelessWidget {
   }
 }
 
-// --------------------- Frosted Card ---------------------
+//Frosted Card
 
 class _FrostedCard extends StatelessWidget {
   final Widget child;
@@ -479,7 +464,7 @@ class _FrostedCard extends StatelessWidget {
   }
 }
 
-// --------------------- Glass FAB ---------------------
+//Glass FAB
 
 class _GlassFab extends StatelessWidget {
   final VoidCallback onPressed;
@@ -504,7 +489,7 @@ class _GlassFab extends StatelessWidget {
   }
 }
 
-// --------------------- Category Theme ---------------------
+//Category Theme
 
 class _CategoryTheme {
   final List<Color> gradient;
@@ -590,7 +575,7 @@ _CategoryTheme _themeFor(Service service) {
   }
 }
 
-// --------------------- SERVICE TILE ---------------------
+//SERVICE TILE
 
 class ServiceTile extends StatefulWidget {
   final Service service;

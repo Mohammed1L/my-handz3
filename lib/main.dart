@@ -7,13 +7,14 @@ import '_LandingPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '_SplashPage.dart';
 import '_Chatbot.dart';
-import '_BookingScreenState.dart'; // Updated BookingScreen
+import '_BookingScreenState.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'main_page.dart';
 import 'CompanyRegisterPage.dart';
 import 'CompanyDashboardPage.dart';
 import 'services/stripe_service.dart';
+import 'admin/admin_reindex_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,8 +49,7 @@ class MyApp extends StatelessWidget {
       locale: context.locale,
       supportedLocales: context.supportedLocales,
       localizationsDelegates: context.localizationDelegates,
-      // If Splash causes issues, show landing directly to avoid blank screen on web
-      home: const LandingPage(),
+      home: const SplashScreen(),
       routes: {
         '/landing': (context) => const LandingPage(),
         '/phoneVerification': (context) => const PhoneVerificationPage(),
@@ -58,8 +58,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const MyProfilePage(),
         '/companyRegister': (context) => const CompanyRegisterPage(),
         '/companyDashboard': (context) => const CompanyDashboardPage(),
+        '/admin/reindex': (context) => const AdminReindexPage(),
 
-        // 🛠️ Updated Booking Route with new BookingScreen params
         '/booking': (context) {
           final args = ModalRoute.of(context)!.settings.arguments
           as Map<String, dynamic>?;

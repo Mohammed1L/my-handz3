@@ -5,6 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
+const Color kPrimaryColor = Color(0xFF18AEAC);
+const Color kAccentColor = Color(0xFF007EA7);
+
 class CompanyRegisterPage extends StatefulWidget {
   const CompanyRegisterPage({super.key});
 
@@ -12,16 +15,14 @@ class CompanyRegisterPage extends StatefulWidget {
   State<CompanyRegisterPage> createState() => _CompanyRegisterPageState();
 }
 
-class _CompanyRegisterPageState extends State<CompanyRegisterPage>
-    with SingleTickerProviderStateMixin {
+class _CompanyRegisterPageState extends State<CompanyRegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final TextEditingController _companyNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-  TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -31,25 +32,8 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
 
   bool _submitting = false;
 
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
-    _fadeController.forward();
-  }
-
   @override
   void dispose() {
-    _fadeController.dispose();
-
     _companyNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -166,8 +150,7 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
       ..writeln('Company email: ${_emailController.text.trim()}')
       ..writeln('Phone number: ${_phoneController.text.trim()}')
       ..writeln('Address: ${_addressController.text.trim()}')
-      ..writeln(
-          'Description: ${_descriptionController.text.trim().isEmpty ? 'N/A' : _descriptionController.text.trim()}')
+      ..writeln('Description: ${_descriptionController.text.trim().isEmpty ? 'N/A' : _descriptionController.text.trim()}')
       ..writeln('Services: ${services.isEmpty ? 'N/A' : services.join(', ')}');
     return buffer.toString();
   }
@@ -175,8 +158,7 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
   Future<void> _sendViaMailto(String body) async {
     final subject = Uri.encodeComponent('New Company Registration');
     final encodedBody = Uri.encodeComponent(body);
-    final uri = Uri.parse(
-        'mailto:mahertorke@gmail.com?subject=$subject&body=$encodedBody');
+    final uri = Uri.parse('mailto:mahertorke@gmail.com?subject=$subject&body=$encodedBody');
     if (await canLaunchUrl(uri)) {
       final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
       if (!launched) {
@@ -215,284 +197,10 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // soft pastel background
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE9F9F8), Color(0xFFF6F4FB)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final bool wide = constraints.maxWidth >= 800;
-                final double maxFormWidth =
-                wide ? 720 : constraints.maxWidth - 32;
-
-                return Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 20),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxFormWidth),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Top bar with back + title
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.arrow_back_rounded),
-                                color: const Color(0xFF0D8A88),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                'Register your company',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0D8A88),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Hero icon + subtitle
-                          Row(
-                            children: [
-                              TweenAnimationBuilder<double>(
-                                tween: Tween(begin: 0.8, end: 1),
-                                duration:
-                                const Duration(milliseconds: 600),
-                                curve: Curves.easeOutBack,
-                                builder: (context, value, child) {
-                                  return Transform.scale(
-                                    scale: value,
-                                    child: Container(
-                                      height: 60,
-                                      width: 60,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF18AEAC)
-                                            .withOpacity(0.16),
-                                        borderRadius:
-                                        BorderRadius.circular(20),
-                                      ),
-                                      child: const Icon(
-                                        Icons.apartment_rounded,
-                                        color: Color(0xFF0D8A88),
-                                        size: 32,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Tell us about your company so we can verify and enable bookings for your services.',
-                                  style: TextStyle(
-                                    fontSize: 13.5,
-                                    height: 1.4,
-                                    color: Colors.black.withOpacity(0.65),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Glass card with form
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(22),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                  Colors.black.withOpacity(0.05),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(18),
-                              child: Form(
-                                key: _formKey,
-                                child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.stretch,
-                                  children: [
-                                    Wrap(
-                                      spacing: 16,
-                                      runSpacing: 16,
-                                      children: [
-                                        _buildField(
-                                          label: 'Company name',
-                                          controller:
-                                          _companyNameController,
-                                          validator: _requiredValidator,
-                                          width: wide
-                                              ? (maxFormWidth - 16) / 2
-                                              : maxFormWidth,
-                                        ),
-                                        _buildField(
-                                          label: 'Company email',
-                                          controller: _emailController,
-                                          validator: _emailValidator,
-                                          keyboardType:
-                                          TextInputType.emailAddress,
-                                          width: wide
-                                              ? (maxFormWidth - 16) / 2
-                                              : maxFormWidth,
-                                        ),
-                                        _buildField(
-                                          label: 'Phone number',
-                                          controller: _phoneController,
-                                          validator: _requiredValidator,
-                                          keyboardType:
-                                          TextInputType.phone,
-                                          width: wide
-                                              ? (maxFormWidth - 16) / 2
-                                              : maxFormWidth,
-                                        ),
-                                        _buildField(
-                                          label: 'Company address',
-                                          controller: _addressController,
-                                          validator: _requiredValidator,
-                                          width: wide
-                                              ? (maxFormWidth - 16) / 2
-                                              : maxFormWidth,
-                                        ),
-                                        _buildField(
-                                          label: 'Password',
-                                          controller: _passwordController,
-                                          validator: _requiredValidator,
-                                          obscureText: true,
-                                          width: wide
-                                              ? (maxFormWidth - 16) / 2
-                                              : maxFormWidth,
-                                        ),
-                                        _buildField(
-                                          label: 'Confirm password',
-                                          controller:
-                                          _confirmPasswordController,
-                                          validator:
-                                          _confirmPasswordValidator,
-                                          obscureText: true,
-                                          width: wide
-                                              ? (maxFormWidth - 16) / 2
-                                              : maxFormWidth,
-                                        ),
-                                        _buildField(
-                                          label:
-                                          'Company description (optional)',
-                                          controller:
-                                          _descriptionController,
-                                          validator: (_) => null,
-                                          maxLines: 3,
-                                          width: maxFormWidth,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 18),
-                                    Text(
-                                      'Services offered',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF0D8A88),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ..._buildServiceInputs(),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: TextButton.icon(
-                                        onPressed:
-                                        _submitting ? null : _addServiceField,
-                                        icon: const Icon(Icons.add),
-                                        label:
-                                        const Text('Add service'),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor:
-                                          const Color(0xFF0D8A88),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    AnimatedSwitcher(
-                                      duration: const Duration(
-                                          milliseconds: 250),
-                                      child: SizedBox(
-                                        key: ValueKey(_submitting),
-                                        width: double.infinity,
-                                        child: ElevatedButton.icon(
-                                          onPressed: _submitting
-                                              ? null
-                                              : _onSubmit,
-                                          icon: _submitting
-                                              ? const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child:
-                                            CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                              AlwaysStoppedAnimation<
-                                                  Color>(
-                                                  Colors.white),
-                                            ),
-                                          )
-                                              : const Icon(Icons.send),
-                                          label: Text(
-                                            _submitting
-                                                ? 'Sending...'
-                                                : 'Submit registration',
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                            const Color(0xFF18AEAC),
-                                            foregroundColor: Colors.white,
-                                            padding:
-                                            const EdgeInsets.symmetric(
-                                                vertical: 14),
-                                            shape:
-                                            RoundedRectangleBorder(
-                                              borderRadius:
-                                              BorderRadius.circular(
-                                                  14),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
+  void _addServiceField() {
+    setState(() {
+      _serviceControllers.add(TextEditingController());
+    });
   }
 
   List<Widget> _buildServiceInputs() {
@@ -508,16 +216,23 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: kPrimaryColor, width: 1.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                fillColor: Colors.white,
+                filled: true,
               ),
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
             tooltip: 'Remove',
-            icon: const Icon(Icons.remove_circle_outline),
-            color: Colors.redAccent,
+            icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
             onPressed: _serviceControllers.length > 1
                 ? () => setState(() {
               final removed = _serviceControllers.removeAt(i);
@@ -532,12 +247,6 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
     return widgets;
   }
 
-  void _addServiceField() {
-    setState(() {
-      _serviceControllers.add(TextEditingController());
-    });
-  }
-
   Widget _buildField({
     required String label,
     required TextEditingController controller,
@@ -545,7 +254,7 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
     TextInputType? keyboardType,
     bool obscureText = false,
     int maxLines = 1,
-    required double width,
+    double? width,
   }) {
     return SizedBox(
       width: width,
@@ -557,12 +266,215 @@ class _CompanyRegisterPageState extends State<CompanyRegisterPage>
         maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(12),
           ),
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: kPrimaryColor, width: 1.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F3F7),
+      appBar: AppBar(
+        backgroundColor: kPrimaryColor,
+        elevation: 0,
+        title: const Text('Register as Company'),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool wide = constraints.maxWidth >= 800;
+          final double maxFormWidth = wide ? 760 : constraints.maxWidth - 32;
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxFormWidth),
+                child: Column(
+                  children: [
+                    // Decorative intro card (keeps previous design)
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12.withOpacity(0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        children: [
+                          Container(
+                            height: 44,
+                            width: 44,
+                            decoration: BoxDecoration(
+                              color: kPrimaryColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.apartment, color: kPrimaryColor),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Tell us about your company so we can verify and enable bookings for your services.',
+                              style: TextStyle(color: Colors.grey.shade800),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Wrap(
+                                spacing: 14,
+                                runSpacing: 14,
+                                children: [
+                                  _buildField(
+                                    label: 'Company name',
+                                    controller: _companyNameController,
+                                    validator: _requiredValidator,
+                                    width: wide ? (maxFormWidth - 14) / 2 : maxFormWidth,
+                                  ),
+                                  _buildField(
+                                    label: 'Company email',
+                                    controller: _emailController,
+                                    validator: _emailValidator,
+                                    keyboardType: TextInputType.emailAddress,
+                                    width: wide ? (maxFormWidth - 14) / 2 : maxFormWidth,
+                                  ),
+                                  _buildField(
+                                    label: 'Phone number',
+                                    controller: _phoneController,
+                                    validator: _requiredValidator,
+                                    keyboardType: TextInputType.phone,
+                                    width: wide ? (maxFormWidth - 14) / 2 : maxFormWidth,
+                                  ),
+                                  _buildField(
+                                    label: 'Company address',
+                                    controller: _addressController,
+                                    validator: _requiredValidator,
+                                    width: wide ? (maxFormWidth - 14) / 2 : maxFormWidth,
+                                  ),
+                                  _buildField(
+                                    label: 'Password',
+                                    controller: _passwordController,
+                                    validator: _requiredValidator,
+                                    obscureText: true,
+                                    width: wide ? (maxFormWidth - 14) / 2 : maxFormWidth,
+                                  ),
+                                  _buildField(
+                                    label: 'Confirm password',
+                                    controller: _confirmPasswordController,
+                                    validator: _confirmPasswordValidator,
+                                    obscureText: true,
+                                    width: wide ? (maxFormWidth - 14) / 2 : maxFormWidth,
+                                  ),
+                                  _buildField(
+                                    label: 'Company description (optional)',
+                                    controller: _descriptionController,
+                                    validator: (_) => null,
+                                    maxLines: 3,
+                                    width: maxFormWidth,
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 12),
+                              Text('Services offered', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade800)),
+                              const SizedBox(height: 8),
+                              ..._buildServiceInputs(),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: TextButton.icon(
+                                  onPressed: _addServiceField,
+                                  icon: const Icon(Icons.add, color: kPrimaryColor),
+                                  label: const Text('Add service'),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Submit button (fixed height and visible text)
+                              SizedBox(
+                                width: double.infinity,
+                                height: 54,
+                                child: ElevatedButton(
+                                  onPressed: _submitting ? null : _onSubmit,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: kPrimaryColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 250),
+                                    child: _submitting
+                                        ? Row(
+                                      key: const ValueKey('loading'),
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: const [
+                                        SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.2,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text('Sending...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      ],
+                                    )
+                                        : const Text(
+                                      'Register',
+                                      key: ValueKey('text'),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

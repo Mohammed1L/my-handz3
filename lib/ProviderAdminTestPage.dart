@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/search_utils.dart';
 
 class ProviderAdminTestPage extends StatefulWidget {
   const ProviderAdminTestPage({super.key});
@@ -50,6 +51,21 @@ class _ProviderAdminTestPageState extends State<ProviderAdminTestPage> {
     }).toList();
 
     try {
+      final combinedForSearch = StringBuffer()
+        ..write(name)
+        ..write(' ')
+        ..write(category);
+
+      for (final s in services.take(8)) {
+        final serviceName = (s['name'] ?? '').toString();
+        if (serviceName.isNotEmpty) {
+          combinedForSearch.write(' ');
+          combinedForSearch.write(serviceName);
+        }
+      }
+
+      final keywords = generateKeywords(combinedForSearch.toString(), prefixLimit: 12, maxTokens: 12);
+
       await FirebaseFirestore.instance.collection('providers').doc(id).set({
         'name': name,
         'category': category,
@@ -57,6 +73,7 @@ class _ProviderAdminTestPageState extends State<ProviderAdminTestPage> {
         'location': location,
         'image': imageUrl,
         'services': services,
+        'keywords': keywords,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
