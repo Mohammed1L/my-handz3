@@ -31,14 +31,14 @@ A complete **Flutter + Firebase** mobile application developed as a senior proje
 
 | | | |
 |:---:|:---:|:---:|
-| <img src="https://github.com/user-attachments/assets/c9c280f6-e159-492b-b4d0-83a5a9243b86" width="200"/> | <img src="https://github.com/user-attachments/assets/3ece6e28-a262-447e-af8b-e26c40fc2ed0" width="200"/> | <img src="https://github.com/user-attachments/assets/53869b21-ed34-403f-87d4-d371a253f7d5" width="200"/> |
-| <img src="https://github.com/user-attachments/assets/56ace294-dfff-4778-8101-f7706d9b07ca" width="200"/> | <img src="https://github.com/user-attachments/assets/557d8bdd-cf77-4c46-809f-bdd523a378be" width="200"/> | <img src="https://github.com/user-attachments/assets/be02a0e9-8676-4e66-a58d-f7a714b681c9" width="200"/> |
-| <img src="https://github.com/user-attachments/assets/0424afa4-554c-4846-8419-cc5908d7348e" width="200"/> | <img src="https://github.com/user-attachments/assets/5bed2f11-9f4d-4a6c-bf11-c891dc88b775" width="200"/> | <img src="https://github.com/user-attachments/assets/d7eeb23b-9545-4555-8092-f5b9e64f8fdd" width="200"/> |
-| <img src="https://github.com/user-attachments/assets/2d94b3fc-7140-4d1e-a280-ca1e0930a560" width="200"/> | <img src="https://github.com/user-attachments/assets/c7aae27c-2cca-45d3-9ac2-5bf44023e2b0" width="200"/> | <img src="https://github.com/user-attachments/assets/5e1c8e84-9370-4372-8ca8-778e3e567ad1" width="200"/> |
-| <img src="https://github.com/user-attachments/assets/a71f78d2-b1e7-4d63-978a-136b7bcf93f2" width="200"/> | <img src="https://github.com/user-attachments/assets/fd248af4-bc51-4b4d-acef-b5b91b0c54ef" width="200"/> | <img src="https://github.com/user-attachments/assets/fcbb2653-5720-4e43-8ab6-b965380c5260" width="200"/> |
-| <img src="https://github.com/user-attachments/assets/2ba6cf67-7329-4890-9eb3-4ddb6d6e604f" width="200"/> | <img src="https://github.com/user-attachments/assets/e3d85002-3b24-4eb3-b745-766e57570e18" width="200"/> | |
+| <img src="https://github.com/user-attachments/assets/0424afa4-554c-4846-8419-cc5908d7348e" width="260"/> | <img src="https://github.com/user-attachments/assets/5bed2f11-9f4d-4a6c-bf11-c891dc88b775" width="260"/> | <img src="https://github.com/user-attachments/assets/d7eeb23b-9545-4555-8092-f5b9e64f8fdd" width="260"/> |
+| <img src="https://github.com/user-attachments/assets/c9c280f6-e159-492b-b4d0-83a5a9243b86" width="260"/> | <img src="https://github.com/user-attachments/assets/3ece6e28-a262-447e-af8b-e26c40fc2ed0" width="260"/> | <img src="https://github.com/user-attachments/assets/53869b21-ed34-403f-87d4-d371a253f7d5" width="260"/> |
+| <img src="https://github.com/user-attachments/assets/56ace294-dfff-4778-8101-f7706d9b07ca" width="260"/> | <img src="https://github.com/user-attachments/assets/557d8bdd-cf77-4c46-809f-bdd523a378be" width="260"/> | <img src="https://github.com/user-attachments/assets/be02a0e9-8676-4e66-a58d-f7a714b681c9" width="260"/> |
+| <img src="https://github.com/user-attachments/assets/2d94b3fc-7140-4d1e-a280-ca1e0930a560" width="260"/> | <img src="https://github.com/user-attachments/assets/c7aae27c-2cca-45d3-9ac2-5bf44023e2b0" width="260"/> | <img src="https://github.com/user-attachments/assets/5e1c8e84-9370-4372-8ca8-778e3e567ad1" width="260"/> |
+| <img src="https://github.com/user-attachments/assets/a71f78d2-b1e7-4d63-978a-136b7bcf93f2" width="260"/> | <img src="https://github.com/user-attachments/assets/fd248af4-bc51-4b4d-acef-b5b91b0c54ef" width="260"/> | <img src="https://github.com/user-attachments/assets/fcbb2653-5720-4e43-8ab6-b965380c5260" width="260"/> |
+| <img src="https://github.com/user-attachments/assets/2ba6cf67-7329-4890-9eb3-4ddb6d6e604f" width="260"/> | <img src="https://github.com/user-attachments/assets/e3d85002-3b24-4eb3-b745-766e57570e18" width="260"/> | |
 
-</div>
+</div>>
 
 
 
